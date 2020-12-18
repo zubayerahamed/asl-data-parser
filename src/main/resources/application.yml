@@ -1,0 +1,58 @@
+server:
+  servlet:
+    context-path: /
+  port: 8081
+  error:
+    whitelabel:
+      enabled: false
+
+spring:
+  application:
+    name: asl-data-parser
+  profiles:
+    active: dev
+  thymeleaf:
+    cache: false
+  datasource: 
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@103.231.135.60:1521:orcl
+    username: DESCO
+    password: Desco1234
+    tomcat:
+      max-wait: 20000
+      max-active: 50
+      max-idle: 20
+      min-idle: 15
+  jackson:
+    serialization:
+      indent-output: true
+  banner:
+    location: banner.txt
+
+file: 
+  monthly: 
+    thread: 
+      number: 2
+      sleep: 1000
+    prefix: "02_"
+    location: 
+      read: D:/ASL
+      backup: D:/ASL/monthly/backup
+      error: D:/ASL/monthly/error/
+      done: D:/ASL/monthly/done
+  daily: 
+    thread: 
+      number: 2
+      sleep: 1000
+    prefix: "01"
+    location: 
+      read: D:/ASL
+      backup: D:/ASL/daily/backup
+      error: D:/ASL/daily/error
+      done: D:/ASL/daily/done
+
+
+
+
+
+

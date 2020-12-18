@@ -1,8 +1,6 @@
 package com.asl.service;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -14,9 +12,14 @@ import org.springframework.stereotype.Component;
 public interface FileReadWriteService {
 
 	/**
+	 * Process start point
+	 */
+	public void startProcess(Map<String, String> filesMap);
+	
+	/**
 	 * Read all files from directory
 	 * @param directory
 	 * @return
 	 */
-	public List<String> readAllFilesFromDirectory(Path path, String extention) throws IOException;
+	public void readFiles(Map<String, String> filesMap);
 }

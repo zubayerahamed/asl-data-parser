@@ -1,15 +1,13 @@
 package com.asl;
 
-import java.nio.file.Paths;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.asl.service.FileReadWriteService;
+import com.asl.service.impl.MonthlyFileReadWriteServiceImpl;
 
 /**
  * @author Zubayer Ahamed
@@ -18,19 +16,14 @@ import com.asl.service.FileReadWriteService;
 @Component
 public class ProcessStarter implements CommandLineRunner {
 
-	@Autowired private FileReadWriteService fileReadWriteService;
+	private Map<String, String> filesMap = new HashMap<>();
 
-	@Value("${file.server.read.location}")
-	private String filesLocation;
+	@Autowired private MonthlyFileReadWriteServiceImpl fileReadWriteService;
 
 	@Override
 	public void run(String... args) throws Exception {
-		List<String> files = fileReadWriteService.readAllFilesFromDirectory(Paths.get(filesLocation), "csv");
-		
-		
-		files.stream().forEach(f -> {
-			System.out.println(f);
-		});
+		fileReadWriteService.startProcess(filesMap);
+		System.out.println(filesMap.size());
 	}
 
 }
