@@ -1,22 +1,25 @@
-package com.asl.config;
+package com.asl.service;
 
+import java.util.Date;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubayer Ahamed
- * @since Dec 17, 2020
+ * @since Dec 19, 2020
  */
 @Slf4j
-@Configuration
+@Service
 @EnableAsync
-public class AsyncConfiguration {
+public class AsyncCSVProcessor {
 
 	@Bean(name = "taskExecutor")
 	public Executor taskExecutor() {
@@ -28,5 +31,21 @@ public class AsyncConfiguration {
 		executor.setThreadNamePrefix("CarThread-");
 		executor.initialize();
 		return executor;
+	}
+
+	@Async
+	public void processDataFromCSV() {
+		int i = 0;
+		while(i < 10) {
+			System.out.println("Hi there at - " + new Date());
+			System.out.println(Thread.currentThread().getName() + " - " + Thread.currentThread().getId());
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			i++;
+		}
+		
 	}
 }

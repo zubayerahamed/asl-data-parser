@@ -11,15 +11,15 @@ import org.springframework.stereotype.Component;
 @Component
 public interface FileReadWriteService {
 
-	/**
-	 * Process start point
-	 */
-	public void startProcess(Map<String, String> filesMap);
-	
-	/**
-	 * Read all files from directory
-	 * @param directory
-	 * @return
-	 */
-	public void readFiles(Map<String, String> filesMap);
+//	/**
+//	 * Process start point
+//	 */
+//	public void startProcess(Map<String, String> filesMap);
+//	
+//	/**
+//	 * Read all files from directory
+//	 * @param directory
+//	 * @return
+//	 */
+//	public void readFiles(Map<String, String> filesMap);
 }

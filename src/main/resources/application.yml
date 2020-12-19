@@ -30,6 +30,8 @@ spring:
     location: banner.txt
 
 file: 
+  properties: 
+    path: D:/ASL/asl.properties
   monthly: 
     thread: 
       number: 2
@@ -37,9 +39,9 @@ file:
     prefix: "02_"
     location: 
       read: D:/ASL
-      backup: D:/ASL/monthly/backup
-      error: D:/ASL/monthly/error/
-      done: D:/ASL/monthly/done
+      success: D:/ASL/monthly/success
+      error: D:/ASL/monthly/error
+      archive: D:/ASL/monthly/archive
   daily: 
     thread: 
       number: 2
@@ -47,9 +49,9 @@ file:
     prefix: "01"
     location: 
       read: D:/ASL
-      backup: D:/ASL/daily/backup
+      success: D:/ASL/daily/success
       error: D:/ASL/daily/error
-      done: D:/ASL/daily/done
+      archive: D:/ASL/daily/archive
 
 
 
