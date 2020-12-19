@@ -84,11 +84,11 @@ public abstract class AbstractImportExport implements ImportExportService {
 		String writableFileName = getWritableFileName(helper, type);
 		String fileWithPath = null;
 		if(FileType.S.equals(type)) {
-			fileWithPath = helper.getFileSuccessLocation().concat("/").concat(writableFileName);
+			fileWithPath = helper.getFileSuccessLocation();
 		} else if (FileType.E.equals(type)) {
-			fileWithPath = helper.getFileErrorLocation().concat("/").concat(writableFileName);
+			fileWithPath = helper.getFileErrorLocation();
 		} else if (FileType.A.equals(type)) {
-			fileWithPath = helper.getFileArchiveLocation().concat("/").concat(writableFileName);
+			fileWithPath = helper.getFileArchiveLocation();
 		}
 
 		try {
@@ -100,7 +100,7 @@ public abstract class AbstractImportExport implements ImportExportService {
 			log.error("Error to write dir file: {} {}", fileWithPath, e.getMessage());
 		}
 
-		return fileWithPath;
+		return fileWithPath.concat("/").concat(writableFileName);
 	}
 
 	protected String getRecordValue(CSVRecord csvRecord, long totalNumberOfColumn, int limit) {

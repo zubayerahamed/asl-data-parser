@@ -1,15 +1,22 @@
 package com.asl;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -63,24 +70,24 @@ public class ProcessStarter implements CommandLineRunner {
 //			Thread.sleep(5000);
 //		}
 
-		Thread t1 = new Thread(() -> {
-			ImportExportHelper helper = new ImportExportHelper();
-			helper.setFileName("02_mdata1.xlsx");
-			helper.setFileReadLocation("D:/ASL/");
-			helper.setFileErrorLocation("D:/ASL/MONTHLY/ERROR/" + SDF.format(new Date()));
-			helper.setFileSuccessLocation("D:/ASL/MONTHLY/SUCCESS/" + SDF.format(new Date()));
-			helper.setFileArchiveLocation("D:/ASL/MONTHLY/ARCHIVE/" + SDF.format(new Date()));
-			helper.setModuleType(ModuleType.MONTHLY);
-			helper.setFirstRowHeader(true);
-			helper.setDelimeterType(',');
-			ImportExportService importExportService = getServiceModule(MONTHLY_MODULE);
-			try {
-				importExportService.processCSV(helper);
-			} catch (ServiceException e) {
-				log.error(ERROR, e.getMessage(), e);
-			}
-		});
-		t1.start();
+//		Thread t1 = new Thread(() -> {
+//			ImportExportHelper helper = new ImportExportHelper();
+//			helper.setFileName("02_custom.csv");
+//			helper.setFileReadLocation("D:/ASL/");
+//			helper.setFileErrorLocation("D:/ASL/MONTHLY/ERROR/" + SDF.format(new Date()));
+//			helper.setFileSuccessLocation("D:/ASL/MONTHLY/SUCCESS/" + SDF.format(new Date()));
+//			helper.setFileArchiveLocation("D:/ASL/MONTHLY/ARCHIVE/" + SDF.format(new Date()));
+//			helper.setModuleType(ModuleType.MONTHLY);
+//			helper.setFirstRowHeader(true);
+//			helper.setDelimeterType(',');
+//			ImportExportService importExportService = getServiceModule(MONTHLY_MODULE);
+//			try {
+//				importExportService.processCSV(helper);
+//			} catch (ServiceException e) {
+//				log.error(ERROR, e.getMessage(), e);
+//			}
+//		});
+//		t1.start();
 
 //		Thread t2 = new Thread(() -> {
 //			ImportExportHelper helper = new ImportExportHelper();
@@ -93,6 +100,39 @@ public class ProcessStarter implements CommandLineRunner {
 //
 //		t1.join();
 //		t2.join();
+		
+		readXslFile();
+		
+	}
+
+	private void readXslFile() throws IOException {
+		File excel = new File("D:/ASL/02_mdata1.xlsx");
+		FileInputStream fis = new FileInputStream(excel);
+		XSSFWorkbook book = new XSSFWorkbook(fis);
+		XSSFSheet sheet = book.getSheetAt(0);
+		Iterator<Row> itr = sheet.iterator(); 
+
+		while (itr.hasNext()) {
+			Row row = itr.next();
+			Iterator<Cell> cellIterator = row.cellIterator();
+			while (cellIterator.hasNext()) {
+				Cell cell = cellIterator.next();
+				switch (cell.getCellType()) {
+				case Cell.CELL_TYPE_STRING:
+					System.out.print(cell.getStringCellValue() + "\t");
+					break;
+				case Cell.CELL_TYPE_NUMERIC:
+					System.out.print(cell.getNumericCellValue() + "\t");
+					break;
+				case Cell.CELL_TYPE_BOOLEAN:
+					System.out.print(cell.getBooleanCellValue() + "\t");
+					break;
+				default:
+				}
+			}
+			System.out.println("");
+		}
+
 	}
 
 	private ImportExportService getServiceModule(String module) {
