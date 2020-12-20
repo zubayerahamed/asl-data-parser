@@ -137,4 +137,8 @@ public abstract class AbstractImportExport implements ImportExportService {
 			return 0;
 		}
 	}
+
+	protected String generateErrors(int rowNumber, String column, String reason) {
+		return "Line " + rowNumber + " - Column " + column + " - Reason : " + reason + ", ";
+	}
 }

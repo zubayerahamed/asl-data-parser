@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -70,24 +73,24 @@ public class ProcessStarter implements CommandLineRunner {
 //			Thread.sleep(5000);
 //		}
 
-//		Thread t1 = new Thread(() -> {
-//			ImportExportHelper helper = new ImportExportHelper();
-//			helper.setFileName("02_custom.csv");
-//			helper.setFileReadLocation("D:/ASL/");
-//			helper.setFileErrorLocation("D:/ASL/MONTHLY/ERROR/" + SDF.format(new Date()));
-//			helper.setFileSuccessLocation("D:/ASL/MONTHLY/SUCCESS/" + SDF.format(new Date()));
-//			helper.setFileArchiveLocation("D:/ASL/MONTHLY/ARCHIVE/" + SDF.format(new Date()));
-//			helper.setModuleType(ModuleType.MONTHLY);
-//			helper.setFirstRowHeader(true);
-//			helper.setDelimeterType(',');
-//			ImportExportService importExportService = getServiceModule(MONTHLY_MODULE);
-//			try {
-//				importExportService.processCSV(helper);
-//			} catch (ServiceException e) {
-//				log.error(ERROR, e.getMessage(), e);
-//			}
-//		});
-//		t1.start();
+		Thread t1 = new Thread(() -> {
+			ImportExportHelper helper = new ImportExportHelper();
+			helper.setFileName("02_mdata1.csv");
+			helper.setFileReadLocation("D:/ASL/");
+			helper.setFileErrorLocation("D:/ASL/MONTHLY/ERROR/" + SDF.format(new Date()));
+			helper.setFileSuccessLocation("D:/ASL/MONTHLY/SUCCESS/" + SDF.format(new Date()));
+			helper.setFileArchiveLocation("D:/ASL/MONTHLY/ARCHIVE/" + SDF.format(new Date()));
+			helper.setModuleType(ModuleType.MONTHLY);
+			helper.setFirstRowHeader(true);
+			helper.setDelimeterType(',');
+			ImportExportService importExportService = getServiceModule(MONTHLY_MODULE);
+			try {
+				importExportService.processCSV(helper);
+			} catch (ServiceException e) {
+				log.error(ERROR, e.getMessage(), e);
+			}
+		});
+		t1.start();
 
 //		Thread t2 = new Thread(() -> {
 //			ImportExportHelper helper = new ImportExportHelper();
@@ -101,7 +104,7 @@ public class ProcessStarter implements CommandLineRunner {
 //		t1.join();
 //		t2.join();
 		
-		readXslFile();
+		//readXslFile();
 		
 	}
 
@@ -111,28 +114,54 @@ public class ProcessStarter implements CommandLineRunner {
 		XSSFWorkbook book = new XSSFWorkbook(fis);
 		XSSFSheet sheet = book.getSheetAt(0);
 		Iterator<Row> itr = sheet.iterator(); 
+		
+
 
 		while (itr.hasNext()) {
 			Row row = itr.next();
 			Iterator<Cell> cellIterator = row.cellIterator();
+
+			List<String> cols = new ArrayList<String>();
 			while (cellIterator.hasNext()) {
 				Cell cell = cellIterator.next();
 				switch (cell.getCellType()) {
 				case Cell.CELL_TYPE_STRING:
-					System.out.print(cell.getStringCellValue() + "\t");
+//					System.out.print(cell.getStringCellValue() + "\t");
+					cols.add(cell.getStringCellValue());
 					break;
 				case Cell.CELL_TYPE_NUMERIC:
-					System.out.print(cell.getNumericCellValue() + "\t");
+//					System.out.print(cell.getNumericCellValue() + "\t");
+					cols.add(BigDecimal.valueOf(cell.getNumericCellValue()).toPlainString());
 					break;
 				case Cell.CELL_TYPE_BOOLEAN:
 					System.out.print(cell.getBooleanCellValue() + "\t");
+					cols.add(Boolean.valueOf(cell.getBooleanCellValue()).toString());
 					break;
 				default:
+					cols.add("");
 				}
 			}
-			System.out.println("");
+			
+			
+			System.out.println(cols.get(0) + "-" + cols.get(1) + "-" + cols.get(2) + "-" + cols.get(3) + "-" + cols.get(4) + "-" + cols.get(5) + "-" + cols.get(6) + "-" + cols.get(7) + "-" + cols.get(8));
+			
+			
 		}
 
+	}
+
+	public Object getCellValue(Cell cell) {
+		if (cell != null) {
+			switch (cell.getCellType()) {
+			case Cell.CELL_TYPE_STRING:
+				return cell.getStringCellValue();
+			case Cell.CELL_TYPE_BOOLEAN:
+				return cell.getBooleanCellValue();
+			case Cell.CELL_TYPE_NUMERIC:
+				return cell.getNumericCellValue();
+			}
+		}
+		return "";
 	}
 
 	private ImportExportService getServiceModule(String module) {

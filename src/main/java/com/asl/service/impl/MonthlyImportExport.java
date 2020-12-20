@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import com.asl.enums.FileType;
 import com.asl.model.ImportExportHelper;
+import com.asl.model.MonthlyCSVColumns;
 import com.asl.model.ServiceException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,20 +69,7 @@ public class MonthlyImportExport extends AbstractImportExport {
 			throw new ServiceException("File name with path not found");
 		}
 
-//		try {
-//			Scanner scanner = new Scanner(new File(fileNameWithPath));
-//			while (scanner.hasNext()) {
-//				List<String> line = parseLine(scanner.nextLine(), DEFAULT_SEPARATOR, DEFAULT_QUOTE);
-//				line.stream().forEach(l -> {
-//					System.out.println(l);
-//				});
-//				
-//			}
-//		} catch (FileNotFoundException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-
+		// Get Success & Error file write directory
 		String successFile = getWritableFile(helper, FileType.S);
 		String errorFile = getWritableFile(helper, FileType.E);
 
@@ -109,22 +98,80 @@ public class MonthlyImportExport extends AbstractImportExport {
 				for (CSVRecord csvRecord : csvParser) {
 					++zLine;
 					long totalColumnFound = csvRecord.size();
+					StringBuilder errorReasons = new StringBuilder();
 
-					String meterNo = getRecordValue(csvRecord, totalColumnFound, 0);
-					String dateTime = getRecordValue(csvRecord, totalColumnFound, 1);
-					String activeEnergy1 = getRecordValue(csvRecord, totalColumnFound, 2);
-					String activeEnergy2 = getRecordValue(csvRecord, totalColumnFound, 3);
-					String activeEnergy3 = getRecordValue(csvRecord, totalColumnFound, 4);
-					String activeEnergy4 = getRecordValue(csvRecord, totalColumnFound, 5);
-					String activeEnergy5 = getRecordValue(csvRecord, totalColumnFound, 6);
-					String reactiveEnergy = getRecordValue(csvRecord, totalColumnFound, 7);
-					String meterBalance = getRecordValue(csvRecord, totalColumnFound, 8);
+					MonthlyCSVColumns mcc = new MonthlyCSVColumns(csvRecord, totalColumnFound);
 
-					System.out.println(meterNo + "-" + dateTime + "-" + activeEnergy1 + "-" + meterBalance);
-					StringBuilder sql1 = new StringBuilder("SELECT SJID FROM SB_SJZB WHERE SFYX=1 AND CLDJH='" + meterNo + "'");
-					List<Map<String, Object>> result1 = jdbcTemplate.queryForList(sql1.toString());
+					// Validate columns
+					mcc.validaeColumns(mcc, errorReasons, zLine);
+
+					// If column has error then write to error file and continue for next record
+					if(StringUtils.isNotBlank(errorReasons)) {
+						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
+						continue;
+					}
+
+					System.out.println(mcc.toString());
+					// Get SJID using meter number
+					StringBuilder sql1 = new StringBuilder("SELECT SJID FROM SB_SJZB WHERE SFYX=1 AND CLDJH='" + mcc.getMeterNo() + "'");
+					String sjid = null;
+					try {
+						List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1.toString());
+						if(!list.isEmpty()) {
+							sjid = ((BigDecimal) list.get(0).get("SJID")).toPlainString().trim();
+						}
+					} catch (Exception e) {
+						log.error(ERROR, e.getMessage(), e);
+						errorReasons.append(generateErrors(zLine, "A", "SJID read query failed - " + e.getMessage()));
+						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
+						continue;
+					}
+					if(StringUtils.isBlank(sjid)) {
+						errorReasons.append(generateErrors(zLine, "A", "Sequence number not found using meter number " + mcc.getMeterNo()));
+						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
+						continue;
+					}
+					System.out.println("===> sjid : " + sjid);
+
+					// Get CT, PT using meter number
+					StringBuilder sql2 = new StringBuilder("SELECT CT,PT FROM DA_BJ WHERE BJJH='" + mcc.getMeterNo() + "'");
+					String ct = null;
+					String pt = null;
+					try {
+						List<Map<String, Object>> list = jdbcTemplate.queryForList(sql2.toString());
+						if(!list.isEmpty()) {
+							Map<String, Object> map = list.get(0);
+							ct = (String) map.get("CT");
+							pt = (String) map.get("PT");
+						}
+					} catch (Exception e) {
+						log.error(ERROR, e.getMessage(), e);
+						errorReasons.append(generateErrors(zLine, "A", "CT, PT read query failed - " + e.getMessage()));
+						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
+						continue;
+					}
+
+					// Insert data
+					StringBuilder sql3 = new StringBuilder("INSERT INTO sb_dlsj_ydj ")
+							.append("(sjid,sjsj, zxygz, zxygz1,zxygz2, zxygz3, zxygz4,zxwgz, dbye,ct,pt)")
+							.append(" VALUES ")
+							.append("(")
+							.append("to_number(" + sjid + "),")
+							.append("to_date('" + mcc.getDateTime() + "','yyyy-mm-dd'),")
+							.append(""+ mcc.getActiveEnergy1() +",")
+							.append(""+ mcc.getActiveEnergy2() +",")
+							.append(""+ mcc.getActiveEnergy3() +",")
+							.append(""+ mcc.getActiveEnergy4() +",")
+							.append(""+ mcc.getActiveEnergy5() +",")
+							.append(""+ mcc.getReactiveEnergy() +",")
+							.append(""+ ct +"")
+							.append(""+ pt +"")
+							.append(")");
+							
+					System.out.println(sql3.toString());
 					
 					
+
 				}
 				
 
@@ -135,94 +182,13 @@ public class MonthlyImportExport extends AbstractImportExport {
 			throw new ServiceException(e.getMessage());
 		}
 
-		
+
 	}
 
-	private static final char DEFAULT_SEPARATOR = ',';
-    private static final char DEFAULT_QUOTE = '"';
-	public static List<String> parseLine(String cvsLine, char separators, char customQuote) {
 
-        List<String> result = new ArrayList<>();
 
-        //if empty, return!
-        if (cvsLine == null && cvsLine.isEmpty()) {
-            return result;
-        }
-
-        if (customQuote == ' ') {
-            customQuote = DEFAULT_QUOTE;
-        }
-
-        if (separators == ' ') {
-            separators = DEFAULT_SEPARATOR;
-        }
-
-        StringBuffer curVal = new StringBuffer();
-        boolean inQuotes = false;
-        boolean startCollectChar = false;
-        boolean doubleQuotesInColumn = false;
-
-        char[] chars = cvsLine.toCharArray();
-
-        for (char ch : chars) {
-
-            if (inQuotes) {
-                startCollectChar = true;
-                if (ch == customQuote) {
-                    inQuotes = false;
-                    doubleQuotesInColumn = false;
-                } else {
-
-                    //Fixed : allow "" in custom quote enclosed
-                    if (ch == '\"') {
-                        if (!doubleQuotesInColumn) {
-                            curVal.append(ch);
-                            doubleQuotesInColumn = true;
-                        }
-                    } else {
-                        curVal.append(ch);
-                    }
-
-                }
-            } else {
-                if (ch == customQuote) {
-
-                    inQuotes = true;
-
-                    //Fixed : allow "" in empty quote enclosed
-                    if (chars[0] != '"' && customQuote == '\"') {
-                        curVal.append('"');
-                    }
-
-                    //double quotes in column will hit this!
-                    if (startCollectChar) {
-                        curVal.append('"');
-                    }
-
-                } else if (ch == separators) {
-
-                    result.add(curVal.toString());
-
-                    curVal = new StringBuffer();
-                    startCollectChar = false;
-
-                } else if (ch == '\r') {
-                    //ignore LF characters
-                    continue;
-                } else if (ch == '\n') {
-                    //the end, break!
-                    break;
-                } else {
-                    curVal.append(ch);
-                }
-            }
-
-        }
-
-        result.add(curVal.toString());
-
-        return result;
-    }
+	
+	
 	
 
 }
