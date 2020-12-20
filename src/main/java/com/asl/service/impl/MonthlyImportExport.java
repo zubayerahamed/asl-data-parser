@@ -164,7 +164,7 @@ public class MonthlyImportExport extends AbstractImportExport {
 							.append(""+ mcc.getActiveEnergy4() +",")
 							.append(""+ mcc.getActiveEnergy5() +",")
 							.append(""+ mcc.getReactiveEnergy() +",")
-							.append(""+ ct +"")
+							.append(""+ ct +",")
 							.append(""+ pt +"")
 							.append(")");
 							

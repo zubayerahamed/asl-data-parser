@@ -1,5 +1,7 @@
 package com.asl.service.impl;
 
+import com.asl.model.ImportExportHelper;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -11,20 +13,16 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class Process extends Thread {
 
-	private String fileToProcess;
-	private String filePath;
-	private int threadNumber;
+	private ImportExportHelper helper;
 
-	public Process(String fileToProcess, String filePath, int threadNumber) {
-		this.fileToProcess = fileToProcess;
-		this.threadNumber = threadNumber;
-		this.filePath = filePath;
+	public Process(ImportExportHelper helper) {
+		this.helper = helper;
 	}
 
 	@Override
 	public void run() {
 		super.run();
-		System.out.println(fileToProcess + " - " + filePath + " - " + threadNumber);
+		System.out.println(helper.toString());
 	}
 
 }

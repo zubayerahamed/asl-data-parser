@@ -29,29 +29,32 @@ spring:
   banner:
     location: banner.txt
 
-file: 
-  properties: 
-    path: D:/ASL/asl.properties
-  monthly: 
-    thread: 
-      number: 2
-      sleep: 1000
-    prefix: "02_"
-    location: 
-      read: D:/ASL
-      success: D:/ASL/monthly/success
-      error: D:/ASL/monthly/error
-      archive: D:/ASL/monthly/archive
-  daily: 
-    thread: 
-      number: 2
-      sleep: 1000
-    prefix: "01"
-    location: 
-      read: D:/ASL
-      success: D:/ASL/daily/success
-      error: D:/ASL/daily/error
-      archive: D:/ASL/daily/archive
+
+dp: 
+  properties-path: D:/ASL/asl.properties
+  module: 
+    active: MONTHLY,DAILY
+    monthly: 
+      thread: 
+        number: 2
+        sleep: 1
+      file: 
+        prefix: "02_"
+        readpath: D:/ASL
+        successpath: D:/ASL/monthly/success
+        errorpath: D:/ASL/monthly/error
+        archivepath: D:/ASL/monthly/archive
+    daily:
+      thread: 
+        number: 1
+        sleep: 5
+      file: 
+        prefix: "01_"
+        readpath: D:/ASL
+        successpath: D:/ASL/daily/success
+        errorpath: D:/ASL/daily/error
+        archivepath: D:/ASL/daily/archive
+
 
 
 
