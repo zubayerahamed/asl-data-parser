@@ -3,22 +3,15 @@ package com.asl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.catalina.valves.StuckThreadDetectionValve;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -27,9 +20,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.asl.enums.ModuleType;
+import com.asl.model.ImportExportHelper;
 import com.asl.model.ModuleFilesContainer;
+import com.asl.model.Process;
 import com.asl.service.ImportExportService;
-import com.asl.service.impl.Process;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class ProcessStarter implements CommandLineRunner {
 
+	private static final int DEFAULT_NUMBER_OF_THREAD = 1;
+	private static final int DEFAULT_THREAD_SLEEP_TIME_IN_SEC = 10;
 	private static final String ERROR = "Error is : {}, {}";
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("MM-dd-yyyy");
 	private static int mThreadVal = 0;
@@ -72,32 +68,12 @@ public class ProcessStarter implements CommandLineRunner {
 			}
 		}
 
-//		Thread t1 = new Thread(() -> {
-//			ImportExportHelper helper = new ImportExportHelper();
-//			helper.setFileName("02_mdata1.csv");
-//			helper.setFileReadLocation("D:/ASL/");
-//			helper.setFileErrorLocation("D:/ASL/MONTHLY/ERROR/" + SDF.format(new Date()));
-//			helper.setFileSuccessLocation("D:/ASL/MONTHLY/SUCCESS/" + SDF.format(new Date()));
-//			helper.setFileArchiveLocation("D:/ASL/MONTHLY/ARCHIVE/" + SDF.format(new Date()));
-//			helper.setModuleType(ModuleType.MONTHLY);
-//			helper.setFirstRowHeader(true);
-//			helper.setDelimeterType(',');
-//			ImportExportService importExportService = getServiceModule(MONTHLY_MODULE);
-//			try {
-//				importExportService.processCSV(helper);
-//			} catch (ServiceException e) {
-//				log.error(ERROR, e.getMessage(), e);
-//			}
-//		});
-//		t1.start();
-
-		
 	}
 
 	private void prepareProcessStart(ModuleType moduleType, Map<String, String> filesMap) {
 		int threadName = 0;
-		int numberOfThreads = 1;
-		int sleepTime = 1000;
+		int numberOfThreads = DEFAULT_NUMBER_OF_THREAD;
+		int sleepTime = DEFAULT_THREAD_SLEEP_TIME_IN_SEC;
 		if(ModuleType.MONTHLY.equals(moduleType)) {
 			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.monthly.thread.number"));
 			sleepTime = Integer.parseInt(env.getProperty("dp.module.monthly.thread.sleep"));
@@ -106,6 +82,7 @@ public class ProcessStarter implements CommandLineRunner {
 			sleepTime = Integer.parseInt(env.getProperty("dp.module.daily.thread.sleep"));
 		}
 
+		// CSV process thread generate start from here
 		try {
 			boolean stat = true;
 			while (stat) {
@@ -118,8 +95,10 @@ public class ProcessStarter implements CommandLineRunner {
 					String fileToProcess = getFileName(getThreadVal(moduleType), filesMap);
 					if(StringUtils.isNotBlank(fileToProcess)) {
 						increaseThreadVal(moduleType);
-//						Process process = new Process();
-						removeFileFromMap(moduleType, fileToProcess, filesMap);
+
+						Process process = new Process(getImportExportHelper(moduleType, fileToProcess, filesMap));
+						process.start();
+
 						System.out.println(fileToProcess + " - " + threadName);
 					}
 
@@ -130,6 +109,21 @@ public class ProcessStarter implements CommandLineRunner {
 		} catch (Exception e) {
 			log.error(ERROR, e.getMessage(), e);
 		}
+	}
+
+	private synchronized ImportExportHelper getImportExportHelper(ModuleType moduleType, String fileToProcess, Map<String,String> filesMap) {
+		ImportExportHelper helper = new ImportExportHelper();
+		helper.setFileName(fileToProcess);
+		helper.setModuleType(moduleType);
+		helper.setFileReadLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.readpath"));
+		helper.setFileErrorLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.errorpath") + SDF.format(new Date()));
+		helper.setFileSuccessLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.successpath") + SDF.format(new Date()));
+		helper.setFileArchiveLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.archivepath") + SDF.format(new Date()));
+		helper.setFirstRowHeader(true);
+		helper.setDelimeterType(',');
+		helper.setFilesMap(filesMap);
+		helper.setService(getServiceModule(moduleType));
+		return helper;
 	}
 
 	private static synchronized int getThreadVal(ModuleType moduleType) {

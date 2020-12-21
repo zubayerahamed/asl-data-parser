@@ -1,15 +1,17 @@
-package com.asl.service.impl;
+package com.asl.model;
 
-import com.asl.model.ImportExportHelper;
+import com.asl.ProcessStarter;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubayer Ahamed
  * @since Dec 17, 2020
  */
 @Data
+@Slf4j
 @EqualsAndHashCode(callSuper = false)
 public class Process extends Thread {
 
@@ -22,7 +24,12 @@ public class Process extends Thread {
 	@Override
 	public void run() {
 		super.run();
-		System.out.println(helper.toString());
+		try {
+			helper.getService().processCSV(helper);
+		} catch (ServiceException e) {
+			log.error("Error is : {}, {}", e.getMessage(), e);
+		}
+		ProcessStarter.removeFileFromMap(helper.getModuleType(), helper.getFileName(), helper.getFilesMap());
 	}
 
 }

@@ -33,7 +33,7 @@ spring:
 dp: 
   properties-path: D:/ASL/asl.properties
   module: 
-    active: MONTHLY,DAILY
+    active: MONTHLY
     monthly: 
       thread: 
         number: 2

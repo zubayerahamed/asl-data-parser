@@ -1,6 +1,9 @@
 package com.asl.model;
 
+import java.util.Map;
+
 import com.asl.enums.ModuleType;
+import com.asl.service.ImportExportService;
 
 import lombok.Data;
 
@@ -19,4 +22,6 @@ public class ImportExportHelper {
 	private ModuleType moduleType;
 	private boolean firstRowHeader;
 	private char delimeterType;
+	private Map<String, String> filesMap;
+	private ImportExportService service;
 }

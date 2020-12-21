@@ -5,8 +5,8 @@ package com.asl.enums;
  * @since Dec 19, 2020
  */
 public enum ModuleType {
-	DAILY("DAILY","monthlyimportexport"), 
-	MONTHLY("MONTHLY","dailyimportexport");
+	DAILY("DAILY","dailyimportexport"), 
+	MONTHLY("MONTHLY","monthlyimportexport");
 
 	private String code;
 	private String service;
