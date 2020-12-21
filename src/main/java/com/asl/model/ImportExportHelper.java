@@ -24,4 +24,5 @@ public class ImportExportHelper {
 	private char delimeterType;
 	private Map<String, String> filesMap;
 	private ImportExportService service;
+	private Long threadName;
 }

@@ -1,34 +1,23 @@
 package com.asl.service.impl;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.asl.enums.FileType;
@@ -46,10 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service("monthlyimportexportService")
 public class MonthlyImportExport extends AbstractImportExport {
 
+	@Autowired private MonthlyDBActionService dbService;
+
 	@Override
 	public void processCSV(ImportExportHelper helper) throws ServiceException {
-		System.out.println("From Monthly Service");
-		System.out.println(helper.toString());
+		log.debug("Running monthly service, Thread : {}, File name : {}", helper.getThreadName(), helper.getFileName());
+		log.debug("Import export helper : {}", helper);
 
 		String error = validateImportExportHelper(helper);
 		if(StringUtils.isNotBlank(error)) throw new ServiceException(error);
@@ -82,9 +73,8 @@ public class MonthlyImportExport extends AbstractImportExport {
 		try (CSVPrinter csvSuccessPrinter = new CSVPrinter(new FileWriter(successFile, true), csvWritableFormat);
 			CSVPrinter csvErrorPrinter = new CSVPrinter(new FileWriter(errorFile, true), csvWritableFormat)) {
 
-
 			// Open file read stream
-			boolean firstLoop = true;
+			// boolean firstLoop = true;
 			int zLine = helper.isFirstRowHeader() ? 1 : 0;
 			CSVFormat csvFormat = CSVFormat.EXCEL.withTrim().withDelimiter(helper.getDelimeterType()).withIgnoreEmptyLines(true);
 			if(helper.isFirstRowHeader()) {
@@ -111,12 +101,11 @@ public class MonthlyImportExport extends AbstractImportExport {
 						continue;
 					}
 
-					System.out.println(mcc.toString());
 					// Get SJID using meter number
 					StringBuilder sql1 = new StringBuilder("SELECT SJID FROM SB_SJZB WHERE SFYX=1 AND CLDJH='" + mcc.getMeterNo() + "'");
 					String sjid = null;
 					try {
-						List<Map<String, Object>> list = jdbcTemplate.queryForList(sql1.toString());
+						List<Map<String, Object>> list = dbService.queryForList(sql1.toString());
 						if(!list.isEmpty()) {
 							sjid = ((BigDecimal) list.get(0).get("SJID")).toPlainString().trim();
 						}
@@ -131,14 +120,13 @@ public class MonthlyImportExport extends AbstractImportExport {
 						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
 						continue;
 					}
-					System.out.println("===> sjid : " + sjid);
 
 					// Get CT, PT using meter number
 					StringBuilder sql2 = new StringBuilder("SELECT CT,PT FROM DA_BJ WHERE BJJH='" + mcc.getMeterNo() + "'");
 					String ct = null;
 					String pt = null;
 					try {
-						List<Map<String, Object>> list = jdbcTemplate.queryForList(sql2.toString());
+						List<Map<String, Object>> list = dbService.queryForList(sql2.toString());
 						if(!list.isEmpty()) {
 							Map<String, Object> map = list.get(0);
 							ct = (String) map.get("CT");
@@ -158,22 +146,36 @@ public class MonthlyImportExport extends AbstractImportExport {
 							.append("(")
 							.append("to_number(" + sjid + "),")
 							.append("to_date('" + mcc.getDateTime() + "','yyyy-mm-dd'),")
-							.append(""+ mcc.getActiveEnergy1() +",")
-							.append(""+ mcc.getActiveEnergy2() +",")
-							.append(""+ mcc.getActiveEnergy3() +",")
-							.append(""+ mcc.getActiveEnergy4() +",")
-							.append(""+ mcc.getActiveEnergy5() +",")
-							.append(""+ mcc.getReactiveEnergy() +",")
-							.append(""+ ct +",")
-							.append(""+ pt +"")
+							.append(""+ getNullIfNotExist(mcc.getActiveEnergy1()) +",")
+							.append(""+ getNullIfNotExist(mcc.getActiveEnergy2()) +",")
+							.append(""+ getNullIfNotExist(mcc.getActiveEnergy3()) +",")
+							.append(""+ getNullIfNotExist(mcc.getActiveEnergy4()) +",")
+							.append(""+ getNullIfNotExist(mcc.getActiveEnergy5()) +",")
+							.append(""+ getNullIfNotExist(mcc.getReactiveEnergy()) +",")
+							.append(""+ getNullIfNotExist(mcc.getMeterBalance()) +",")
+							.append(""+ getNullIfNotExist(ct) +",")
+							.append(""+ getNullIfNotExist(pt) +"")
 							.append(")");
-							
-					System.out.println(sql3.toString());
-					
-					
+
+					int count = 0;
+					try {
+						count = dbService.update(sql3.toString());
+					} catch (Exception e) {
+						log.error(ERROR, e.getMessage(), e);
+						errorReasons.append(generateErrors(zLine, "", "Data not inserted - " + e.getMessage()));
+						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
+						continue;
+					}
+					if(count < 1) {
+						errorReasons.append(generateErrors(zLine, "", "Data not inserted"));
+						csvErrorPrinter.printRecord(mcc.getErrorRecord(mcc, errorReasons));
+						continue;
+					}
+
+					// If data inserted successfully, then write this record to success file
+					csvSuccessPrinter.printRecord(mcc.getSuccessRecord(mcc));
 
 				}
-				
 
 			}
 
@@ -182,13 +184,11 @@ public class MonthlyImportExport extends AbstractImportExport {
 			throw new ServiceException(e.getMessage());
 		}
 
-
 	}
 
-
-
-	
-	
-	
+	private String getNullIfNotExist(String val) {
+		if(StringUtils.isBlank(val)) return null;
+		return val;
+	}
 
 }

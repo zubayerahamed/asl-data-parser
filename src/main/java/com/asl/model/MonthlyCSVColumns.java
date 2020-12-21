@@ -60,16 +60,26 @@ public class MonthlyCSVColumns {
 
 	public List<String> getErrorRecord(MonthlyCSVColumns mcc, StringBuilder errorReasons){
 		List<String> errorRecord = new ArrayList<>();
-		errorRecord.add(mcc.getMeterNo());
-		errorRecord.add(mcc.getDateTime());
-		errorRecord.add(mcc.getActiveEnergy1());
-		errorRecord.add(mcc.getActiveEnergy2());
-		errorRecord.add(mcc.getActiveEnergy3());
-		errorRecord.add(mcc.getActiveEnergy4());
-		errorRecord.add(mcc.getActiveEnergy5());
-		errorRecord.add(mcc.getReactiveEnergy());
-		errorRecord.add(mcc.getMeterBalance());
+		getRecord(errorRecord, mcc);
 		errorRecord.add(errorReasons.toString());
 		return errorRecord;
+	}
+
+	public List<String> getSuccessRecord(MonthlyCSVColumns mcc){
+		List<String> successRecord = new ArrayList<>();
+		getRecord(successRecord, mcc);
+		return successRecord;
+	}
+
+	private void getRecord(List<String> record, MonthlyCSVColumns mcc) {
+		record.add(mcc.getMeterNo());
+		record.add(mcc.getDateTime());
+		record.add(mcc.getActiveEnergy1());
+		record.add(mcc.getActiveEnergy2());
+		record.add(mcc.getActiveEnergy3());
+		record.add(mcc.getActiveEnergy4());
+		record.add(mcc.getActiveEnergy5());
+		record.add(mcc.getReactiveEnergy());
+		record.add(mcc.getMeterBalance());
 	}
 }

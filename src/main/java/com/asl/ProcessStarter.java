@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -58,20 +59,20 @@ public class ProcessStarter implements CommandLineRunner {
 			if(ModuleType.MONTHLY.getCode().equalsIgnoreCase(module)) {
 				loadFilesIntoMap(ModuleType.MONTHLY, mfc);
 				new Thread(() -> {
-					prepareProcessStart(ModuleType.MONTHLY, mfc.getMonthlyFiles());
+					prepareProcessStart(ModuleType.MONTHLY, mfc);
 				}).start();
 			} else if (ModuleType.DAILY.getCode().equalsIgnoreCase(module)) {
 				loadFilesIntoMap(ModuleType.DAILY, mfc);
 				new Thread(() -> {
-					prepareProcessStart(ModuleType.DAILY, mfc.getDailyFiles());
+					prepareProcessStart(ModuleType.DAILY, mfc);
 				}).start();
 			}
 		}
 
 	}
 
-	private void prepareProcessStart(ModuleType moduleType, Map<String, String> filesMap) {
-		int threadName = 0;
+	private void prepareProcessStart(ModuleType moduleType, ModuleFilesContainer mfc) {
+		Long threadName = new Long(0);
 		int numberOfThreads = DEFAULT_NUMBER_OF_THREAD;
 		int sleepTime = DEFAULT_THREAD_SLEEP_TIME_IN_SEC;
 		if(ModuleType.MONTHLY.equals(moduleType)) {
@@ -87,16 +88,16 @@ public class ProcessStarter implements CommandLineRunner {
 			boolean stat = true;
 			while (stat) {
 				stat = "true".equalsIgnoreCase(getPropertiesValue("thread.process.running.stat"));
-				System.out.println(moduleType.getCode() + " - " + numberOfThreads + " - " + filesMap.size());
+				System.out.println(moduleType.getCode() + " - " + numberOfThreads + " - " + getFilesMapOfModule(moduleType, mfc).size());
 
 				// Create thread to parse files
-				if(getThreadVal(moduleType) < numberOfThreads && !filesMap.isEmpty()) {
-					threadName++;
-					String fileToProcess = getFileName(getThreadVal(moduleType), filesMap);
-					if(StringUtils.isNotBlank(fileToProcess)) {
-						increaseThreadVal(moduleType);
+				if(getThreadVal(moduleType) < numberOfThreads && !getFilesMapOfModule(moduleType, mfc).isEmpty()) {
 
-						Process process = new Process(getImportExportHelper(moduleType, fileToProcess, filesMap));
+					String fileToProcess = getFileName(getThreadVal(moduleType), getFilesMapOfModule(moduleType, mfc));
+					if(StringUtils.isNotBlank(fileToProcess)) {
+						threadName++;
+						increaseThreadVal(moduleType);
+						Process process = new Process(getImportExportHelper(moduleType, fileToProcess, getFilesMapOfModule(moduleType, mfc), threadName));
 						process.start();
 
 						System.out.println(fileToProcess + " - " + threadName);
@@ -104,6 +105,8 @@ public class ProcessStarter implements CommandLineRunner {
 
 				}
 
+				// Load files into map again if new available
+				loadFilesIntoMap(moduleType, mfc);
 				TimeUnit.SECONDS.sleep(sleepTime);
 			}
 		} catch (Exception e) {
@@ -111,18 +114,28 @@ public class ProcessStarter implements CommandLineRunner {
 		}
 	}
 
-	private synchronized ImportExportHelper getImportExportHelper(ModuleType moduleType, String fileToProcess, Map<String,String> filesMap) {
+	private synchronized Map<String, String> getFilesMapOfModule(ModuleType moduleType, ModuleFilesContainer mfc){
+		if(ModuleType.MONTHLY.equals(moduleType)){
+			return mfc.getMonthlyFiles();
+		} else if (ModuleType.DAILY.equals(moduleType)) {
+			return mfc.getDailyFiles();
+		}
+		return Collections.emptyMap();
+	}
+
+	private synchronized ImportExportHelper getImportExportHelper(ModuleType moduleType, String fileToProcess, Map<String,String> filesMap, Long threadName) {
 		ImportExportHelper helper = new ImportExportHelper();
 		helper.setFileName(fileToProcess);
 		helper.setModuleType(moduleType);
 		helper.setFileReadLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.readpath"));
-		helper.setFileErrorLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.errorpath") + SDF.format(new Date()));
-		helper.setFileSuccessLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.successpath") + SDF.format(new Date()));
-		helper.setFileArchiveLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.archivepath") + SDF.format(new Date()));
+		helper.setFileErrorLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.errorpath") + "/" + SDF.format(new Date()));
+		helper.setFileSuccessLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.successpath") + "/" + SDF.format(new Date()));
+		helper.setFileArchiveLocation(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.archivepath") + "/" + SDF.format(new Date()));
 		helper.setFirstRowHeader(true);
 		helper.setDelimeterType(',');
 		helper.setFilesMap(filesMap);
 		helper.setService(getServiceModule(moduleType));
+		helper.setThreadName(threadName);
 		return helper;
 	}
 

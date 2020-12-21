@@ -1,5 +1,11 @@
 package com.asl.model;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import com.asl.ProcessStarter;
 
 import lombok.Data;
@@ -29,7 +35,31 @@ public class Process extends Thread {
 		} catch (ServiceException e) {
 			log.error("Error is : {}, {}", e.getMessage(), e);
 		}
-		ProcessStarter.removeFileFromMap(helper.getModuleType(), helper.getFileName(), helper.getFilesMap());
+
+		// Move source file to destination folder. If successfull, then update files map by removing file name
+		if (true == moveFile(helper.getFileReadLocation(), helper.getFileArchiveLocation(), helper.getFileName())) {
+			log.debug("File moved successfully");
+			ProcessStarter.removeFileFromMap(helper.getModuleType(), helper.getFileName(), helper.getFilesMap());
+		}
+
+	}
+
+	private boolean moveFile(String source, String dest, String fileName) {
+		// Check destination folder exist or not. If not then create
+		File file = new File(dest);
+		if(!file.exists()) {
+			file.mkdirs();
+		}
+
+		// Move file from source to destination
+		Path temp = null;
+		try {
+			temp = Files.move(Paths.get(source + "/" + fileName), Paths.get(dest + "/" + fileName));
+		} catch (IOException e) {
+			log.error("Error is : {}, {}", e.getMessage(), e);
+			return false;
+		}
+		return temp != null;
 	}
 
 }
