@@ -83,8 +83,13 @@ public class ProcessStarter implements CommandLineRunner {
 
 	}
 
+	/**
+	 * Prepare thread processor based on module type
+	 * @param moduleType
+	 * @param mfc
+	 */
 	private void prepareProcessStart(ModuleType moduleType, ModuleFilesContainer mfc) {
-		Long threadName = new Long(0);
+		Long threadName = Long.valueOf(0);
 		int numberOfThreads = DEFAULT_NUMBER_OF_THREAD;
 		int sleepTime = DEFAULT_THREAD_SLEEP_TIME_IN_SEC;
 		if(ModuleType.MONTHLY.equals(moduleType)) {
@@ -145,6 +150,14 @@ public class ProcessStarter implements CommandLineRunner {
 		return Collections.emptyMap();
 	}
 
+	/**
+	 * Prepare import export helper object
+	 * @param moduleType
+	 * @param fileToProcess
+	 * @param filesMap
+	 * @param threadName
+	 * @return {@link ImportExportHelper}
+	 */
 	private synchronized ImportExportHelper getImportExportHelper(ModuleType moduleType, String fileToProcess, Map<String,String> filesMap, Long threadName) {
 		ImportExportHelper helper = new ImportExportHelper();
 		helper.setFileName(fileToProcess);
@@ -161,6 +174,11 @@ public class ProcessStarter implements CommandLineRunner {
 		return helper;
 	}
 
+	/**
+	 * Get current threadval based on module type
+	 * @param moduleType
+	 * @return
+	 */
 	private static synchronized int getThreadVal(ModuleType moduleType) {
 		if(ModuleType.MONTHLY.equals(moduleType)){
 			return mThreadVal;
@@ -174,6 +192,10 @@ public class ProcessStarter implements CommandLineRunner {
 		return 0;
 	}
 
+	/**
+	 * Increase threadval basedn on module type
+	 * @param moduleType
+	 */
 	private static synchronized void increaseThreadVal(ModuleType moduleType) {
 		if(ModuleType.MONTHLY.equals(moduleType)){
 			mThreadVal++;
@@ -186,6 +208,10 @@ public class ProcessStarter implements CommandLineRunner {
 		}
 	}
 
+	/**
+	 * Decrease threadval based on module type
+	 * @param moduleType
+	 */
 	private static synchronized void decreaseThreadVal(ModuleType moduleType) {
 		if(ModuleType.MONTHLY.equals(moduleType)){
 			mThreadVal--;
@@ -198,17 +224,34 @@ public class ProcessStarter implements CommandLineRunner {
 		}
 	}
 
+	/**
+	 * Remove file from map and decrease threadval to based on module type
+	 * @param moduleType
+	 * @param fileNameToProcess
+	 * @param filesMap
+	 */
 	public static synchronized void removeFileFromMap(ModuleType moduleType, String fileNameToProcess, Map<String,String> filesMap) {
 		decreaseThreadVal(moduleType);
 		removeFileName(fileNameToProcess, filesMap);
 	}
 
+	/**
+	 * Remove filename from map
+	 * @param fileNameToProcess
+	 * @param filesMap
+	 */
 	public static synchronized void removeFileName(String fileNameToProcess, Map<String,String> filesMap) {
 		if (filesMap.containsKey(fileNameToProcess)) {
 			filesMap.remove(fileNameToProcess);
 		}
 	}
 
+	/**
+	 * Get file name from map
+	 * @param threadName
+	 * @param filesMap
+	 * @return
+	 */
 	private synchronized String getFileName(int threadName, Map<String, String> filesMap) {
 		String fileName = "";
 		for(Map.Entry<String, String> e : filesMap.entrySet()) {
@@ -221,6 +264,11 @@ public class ProcessStarter implements CommandLineRunner {
 		return fileName;
 	}
 
+	/**
+	 * Loads files name into map from server based on module type
+	 * @param moduleType
+	 * @param mfc
+	 */
 	private synchronized void loadFilesIntoMap(ModuleType moduleType, ModuleFilesContainer mfc) {
 		String fileReadPath = null;
 		String filePrefix = null;
@@ -256,6 +304,11 @@ public class ProcessStarter implements CommandLineRunner {
 		}
 	}
 
+	/**
+	 * Return module wise service
+	 * @param module
+	 * @return {@link ImportExportService}
+	 */
 	private ImportExportService getServiceModule(ModuleType module) {
 		if(module == null) return null;
 		try {

@@ -141,7 +141,7 @@ public class MonthlyImportExport extends AbstractImportExport {
 
 					// Insert data
 					StringBuilder sql3 = new StringBuilder("INSERT INTO sb_dlsj_ydj ")
-							.append("(sjid,sjsj, zxygz, zxygz1,zxygz2, zxygz3, zxygz4,zxwgz, dbye,ct,pt)")
+							.append("(sjid, sjsj, zxygz, zxygz1, zxygz2, zxygz3, zxygz4, zxwgz, dbye, ct, pt)")
 							.append(" VALUES ")
 							.append("(")
 							.append("to_number(" + sjid + "),")
