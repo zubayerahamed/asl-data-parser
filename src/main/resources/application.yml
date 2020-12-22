@@ -54,6 +54,26 @@ dp:
         successpath: D:/ASL/daily/success
         errorpath: D:/ASL/daily/error
         archivepath: D:/ASL/daily/archive
+    event: 
+      thread: 
+        number: 1
+        sleep: 5
+      file: 
+        prefix: "03_"
+        readpath: D:/ASL
+        successpath: D:/ASL/event/success
+        errorpath: D:/ASL/event/error
+        archivepath: D:/ASL/event/archive
+    loadprofile: 
+      thread: 
+        number: 1
+        sleep: 5
+      file: 
+        prefix: "04_"
+        readpath: D:/ASL
+        successpath: D:/ASL/loadprofile/success
+        errorpath: D:/ASL/loadprofile/error
+        archivepath: D:/ASL/loadprofile/archive
 
 
 

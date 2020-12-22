@@ -14,4 +14,6 @@ public class ModuleFilesContainer {
 
 	private Map<String, String> dailyFiles = new HashMap<>();
 	private Map<String, String> monthlyFiles = new HashMap<>();
+	private Map<String, String> eventFiles = new HashMap<>();
+	private Map<String, String> loadProfileFiles = new HashMap<>();
 }

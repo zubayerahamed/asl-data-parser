@@ -42,6 +42,8 @@ public class ProcessStarter implements CommandLineRunner {
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("MM-dd-yyyy");
 	private static int mThreadVal = 0;
 	private static int dThreadVal = 0;
+	private static int eThreadVal = 0;
+	private static int lThreadVal = 0;
 
 	@Autowired private Environment env;
 	@Autowired private ApplicationContext appContext;
@@ -66,6 +68,16 @@ public class ProcessStarter implements CommandLineRunner {
 				new Thread(() -> {
 					prepareProcessStart(ModuleType.DAILY, mfc);
 				}).start();
+			} else if (ModuleType.EVENT.getCode().equalsIgnoreCase(module)) {
+				loadFilesIntoMap(ModuleType.EVENT, mfc);
+				new Thread(() -> {
+					prepareProcessStart(ModuleType.EVENT, mfc);
+				}).start();
+			} else if (ModuleType.LOAD_PROFILE.getCode().equalsIgnoreCase(module)) {
+				loadFilesIntoMap(ModuleType.LOAD_PROFILE, mfc);
+				new Thread(() -> {
+					prepareProcessStart(ModuleType.LOAD_PROFILE, mfc);
+				}).start();
 			}
 		}
 
@@ -81,6 +93,12 @@ public class ProcessStarter implements CommandLineRunner {
 		} else if (ModuleType.DAILY.equals(moduleType)) {
 			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.daily.thread.number"));
 			sleepTime = Integer.parseInt(env.getProperty("dp.module.daily.thread.sleep"));
+		} else if (ModuleType.EVENT.equals(moduleType)) {
+			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.event.thread.number"));
+			sleepTime = Integer.parseInt(env.getProperty("dp.module.event.thread.sleep"));
+		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
+			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.loadprofile.thread.number"));
+			sleepTime = Integer.parseInt(env.getProperty("dp.module.loadprofile.thread.sleep"));
 		}
 
 		// CSV process thread generate start from here
@@ -119,6 +137,10 @@ public class ProcessStarter implements CommandLineRunner {
 			return mfc.getMonthlyFiles();
 		} else if (ModuleType.DAILY.equals(moduleType)) {
 			return mfc.getDailyFiles();
+		} else if (ModuleType.EVENT.equals(moduleType)) {
+			return mfc.getEventFiles();
+		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
+			return mfc.getLoadProfileFiles();
 		}
 		return Collections.emptyMap();
 	}
@@ -144,6 +166,10 @@ public class ProcessStarter implements CommandLineRunner {
 			return mThreadVal;
 		} else if (ModuleType.DAILY.equals(moduleType)) {
 			return dThreadVal;
+		} else if (ModuleType.EVENT.equals(moduleType)) {
+			return eThreadVal;
+		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
+			return lThreadVal;
 		}
 		return 0;
 	}
@@ -153,6 +179,10 @@ public class ProcessStarter implements CommandLineRunner {
 			mThreadVal++;
 		} else if (ModuleType.DAILY.equals(moduleType)) {
 			dThreadVal++;
+		} else if (ModuleType.EVENT.equals(moduleType)) {
+			eThreadVal++;
+		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
+			lThreadVal++;
 		}
 	}
 
@@ -161,6 +191,10 @@ public class ProcessStarter implements CommandLineRunner {
 			mThreadVal--;
 		} else if (ModuleType.DAILY.equals(moduleType)) {
 			dThreadVal--;
+		} else if (ModuleType.EVENT.equals(moduleType)) {
+			eThreadVal--;
+		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
+			lThreadVal--;
 		}
 	}
 
@@ -200,6 +234,14 @@ public class ProcessStarter implements CommandLineRunner {
 			fileReadPath = env.getProperty("dp.module.daily.file.readpath");
 			filePrefix = env.getProperty("dp.module.daily.file.prefix");
 			filesMap = mfc.getDailyFiles();
+		} else if (ModuleType.EVENT.equals(moduleType)) {
+			fileReadPath = env.getProperty("dp.module.event.file.readpath");
+			filePrefix = env.getProperty("dp.module.event.file.prefix");
+			filesMap = mfc.getEventFiles();
+		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
+			fileReadPath = env.getProperty("dp.module.loadprofile.file.readpath");
+			filePrefix = env.getProperty("dp.module.loadprofile.file.prefix");
+			filesMap = mfc.getLoadProfileFiles();
 		}
 
 		File file = new File(fileReadPath);
@@ -234,60 +276,4 @@ public class ProcessStarter implements CommandLineRunner {
 		}
 		return null;
 	}
-
-	//	private void readXslFile() throws IOException {
-	//	File excel = new File("D:/ASL/02_mdata1.xlsx");
-	//	FileInputStream fis = new FileInputStream(excel);
-	//	XSSFWorkbook book = new XSSFWorkbook(fis);
-	//	XSSFSheet sheet = book.getSheetAt(0);
-	//	Iterator<Row> itr = sheet.iterator(); 
-	//	
-	//
-	//
-	//	while (itr.hasNext()) {
-	//		Row row = itr.next();
-	//		Iterator<Cell> cellIterator = row.cellIterator();
-	//
-	//		List<String> cols = new ArrayList<String>();
-	//		while (cellIterator.hasNext()) {
-	//			Cell cell = cellIterator.next();
-	//			switch (cell.getCellType()) {
-	//			case Cell.CELL_TYPE_STRING:
-	////				System.out.print(cell.getStringCellValue() + "\t");
-	//				cols.add(cell.getStringCellValue());
-	//				break;
-	//			case Cell.CELL_TYPE_NUMERIC:
-	////				System.out.print(cell.getNumericCellValue() + "\t");
-	//				cols.add(BigDecimal.valueOf(cell.getNumericCellValue()).toPlainString());
-	//				break;
-	//			case Cell.CELL_TYPE_BOOLEAN:
-	//				System.out.print(cell.getBooleanCellValue() + "\t");
-	//				cols.add(Boolean.valueOf(cell.getBooleanCellValue()).toString());
-	//				break;
-	//			default:
-	//				cols.add("");
-	//			}
-	//		}
-	//		
-	//		
-	//		System.out.println(cols.get(0) + "-" + cols.get(1) + "-" + cols.get(2) + "-" + cols.get(3) + "-" + cols.get(4) + "-" + cols.get(5) + "-" + cols.get(6) + "-" + cols.get(7) + "-" + cols.get(8));
-	//		
-	//		
-	//	}
-	//
-	//}
-	
-	//public Object getCellValue(Cell cell) {
-	//	if (cell != null) {
-	//		switch (cell.getCellType()) {
-	//		case Cell.CELL_TYPE_STRING:
-	//			return cell.getStringCellValue();
-	//		case Cell.CELL_TYPE_BOOLEAN:
-	//			return cell.getBooleanCellValue();
-	//		case Cell.CELL_TYPE_NUMERIC:
-	//			return cell.getNumericCellValue();
-	//		}
-	//	}
-	//	return "";
-	//}
 }

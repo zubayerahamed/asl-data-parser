@@ -6,7 +6,9 @@ package com.asl.enums;
  */
 public enum ModuleType {
 	DAILY("DAILY","dailyimportexport"), 
-	MONTHLY("MONTHLY","monthlyimportexport");
+	MONTHLY("MONTHLY","monthlyimportexport"),
+	EVENT("EVENT","eventimportexport"),
+	LOAD_PROFILE("LOAD_PROFILE","loadprofileimportexport");
 
 	private String code;
 	private String service;
