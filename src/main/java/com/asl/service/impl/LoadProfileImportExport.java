@@ -74,7 +74,6 @@ public class LoadProfileImportExport extends AbstractImportExport {
 			CSVPrinter csvErrorPrinter = new CSVPrinter(new FileWriter(errorFile, true), csvWritableFormat)) {
 
 			// Open file read stream
-			// boolean firstLoop = true;
 			int zLine = helper.isFirstRowHeader() ? 1 : 0;
 			CSVFormat csvFormat = CSVFormat.EXCEL.withTrim().withDelimiter(helper.getDelimeterType()).withIgnoreEmptyLines(true);
 			if(helper.isFirstRowHeader()) {
@@ -82,7 +81,6 @@ public class LoadProfileImportExport extends AbstractImportExport {
 			}
 			try (Reader reader = Files.newBufferedReader(Paths.get(fileNameWithPath), StandardCharsets.ISO_8859_1);
 					CSVParser csvParser = new CSVParser(reader, csvFormat)) {
-				//new BufferedReader(new InputStreamReader(new FileInputStream(fileNameWithPath),"utf-8"));
 
 				// Loop through each record line
 				for (CSVRecord csvRecord : csvParser) {
