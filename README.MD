@@ -10,11 +10,14 @@ DEVELOPED BY : ZUBAYER AHAMED
 ```sh
 mvn clean install
 ```
+
+## Run
+```sh
+java -jar ASL-DP.jar
+```
+
 ## Modules
--- Daily Data
--- Monthly Data
--- Event Data
--- Load Profile Data
-
-## Dcoumentation
-
+* Daily Data
+* Monthly Data
+* Event Data
+* Load Profile Data
