@@ -39,7 +39,7 @@ public class LoadProfileImportExport extends AbstractImportExport {
 
 	@Override
 	public void processCSV(ImportExportHelper helper) throws ServiceException {
-		log.debug("Running load profile service, Thread : {}, File name : {}", helper.getThreadName(), helper.getFileName());
+		log.info("Running load profile service, Thread : {}, File name : {}", helper.getThreadName(), helper.getFileName());
 		log.debug("Import export helper : {}", helper);
 
 		String error = validateImportExportHelper(helper);
@@ -144,6 +144,19 @@ public class LoadProfileImportExport extends AbstractImportExport {
 							.append("(")
 							.append("to_number(" + sjid + "),")
 							.append("to_date('" + lpcc.getDateTime() + "','yyyy-mm-dd'),")
+							.append(""+ getNullIfNotExist(lpcc.getAPhaseVoltage()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getBPhaseVoltage()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getCPhaseVoltage()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getAPhaseCurrent()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getBPhaseCurrent()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getCPhaseCurrent()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getAPhaseActivePower1()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getAPhaseActivePower2()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getAPhaseActivePower3()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getFrequency()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getAPhasePowerFactor()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getBPhasePowerFactor()) +",")
+							.append(""+ getNullIfNotExist(lpcc.getCPhasePowerFactor()) +",")
 							.append(""+ getNullIfNotExist(lpcc.getActiveEnergy1()) +",")
 							.append(""+ getNullIfNotExist(lpcc.getActiveEnergy2()) +",")
 							.append(""+ getNullIfNotExist(lpcc.getActiveEnergy3()) +",")

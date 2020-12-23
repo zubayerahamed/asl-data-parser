@@ -39,7 +39,7 @@ public class DailyImportExport extends AbstractImportExport {
 
 	@Override
 	public void processCSV(ImportExportHelper helper) throws ServiceException {
-		log.debug("Running daily service, Thread : {}, File name : {}", helper.getThreadName(), helper.getFileName());
+		log.info("Running daily service, Thread : {}, File name : {}", helper.getThreadName(), helper.getFileName());
 		log.debug("Import export helper : {}", helper);
 
 		String error = validateImportExportHelper(helper);

@@ -31,9 +31,10 @@ spring:
 
 
 dp: 
+  logging-path: D:/ASL/logs
   properties-path: D:/ASL/asl.properties
   module: 
-    active: MONTHLY
+    active: MONTHLY,DAILY,EVENT,LOAD_PROFILE
     monthly: 
       thread: 
         number: 2
