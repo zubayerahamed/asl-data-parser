@@ -124,7 +124,7 @@ public class EventImportExport extends AbstractImportExport {
 						continue;
 					}
 
-					// Get CT, PT using meter number
+					// Get event code using CIM_CODE
 					StringBuilder sql2 = new StringBuilder("SELECT event_code FROM cim_event WHERE CIM_CODE='" + ecc.getCimCode() + "'");
 					String eventCode = null;
 					try {
@@ -153,8 +153,8 @@ public class EventImportExport extends AbstractImportExport {
 							.append(" VALUES ")
 							.append("(")
 							.append("to_number(" + sjid + "),")
-							.append(""+ getNullIfNotExist(eventCode) +",")
-							.append("to_date('" + ecc.getEventDate() + "','yyyy-mm-dd hh24:mi:ss'),")
+							.append("'"+ getNullIfNotExist(eventCode) +"',")
+							.append("to_date('" + ecc.getEventDate() + "','yyyy-mm-dd hh24:mi:ss')")
 							.append(")");
 
 					int count = 0;

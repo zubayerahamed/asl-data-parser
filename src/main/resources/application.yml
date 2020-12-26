@@ -34,10 +34,10 @@ dp:
   logging-path: D:/ASL/logs
   properties-path: D:/ASL/asl.properties
   module: 
-    active: MONTHLY #,DAILY,EVENT,LOAD_PROFILE
+    active: MONTHLY,DAILY,EVENT,LOAD_PROFILE
     monthly: 
       thread: 
-        number: 2
+        number: 1
         sleep: 1
       file: 
         prefix: "02_"
@@ -58,17 +58,17 @@ dp:
     event: 
       thread: 
         number: 1
-        sleep: 5
+        sleep: 15
       file: 
         prefix: "03_"
         readpath: D:/ASL
         successpath: D:/ASL/event/success
         errorpath: D:/ASL/event/error
         archivepath: D:/ASL/event/archive
-    loadprofile: 
+    load_profile: 
       thread: 
         number: 1
-        sleep: 5
+        sleep: 20
       file: 
         prefix: "04_"
         readpath: D:/ASL

@@ -82,20 +82,15 @@ public class ProcessStarter implements CommandLineRunner {
 	 */
 	private void prepareProcessStart(ModuleType moduleType, ModuleFilesContainer mfc) {
 		Long threadName = Long.valueOf(0);
+
 		int numberOfThreads = DEFAULT_NUMBER_OF_THREAD;
 		int sleepTime = DEFAULT_THREAD_SLEEP_TIME_IN_SEC;
-		if(ModuleType.MONTHLY.equals(moduleType)) {
-			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.monthly.thread.number"));
-			sleepTime = Integer.parseInt(env.getProperty("dp.module.monthly.thread.sleep"));
-		} else if (ModuleType.DAILY.equals(moduleType)) {
-			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.daily.thread.number"));
-			sleepTime = Integer.parseInt(env.getProperty("dp.module.daily.thread.sleep"));
-		} else if (ModuleType.EVENT.equals(moduleType)) {
-			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.event.thread.number"));
-			sleepTime = Integer.parseInt(env.getProperty("dp.module.event.thread.sleep"));
-		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
-			numberOfThreads = Integer.parseInt(env.getProperty("dp.module.loadprofile.thread.number"));
-			sleepTime = Integer.parseInt(env.getProperty("dp.module.loadprofile.thread.sleep"));
+
+		try {
+			numberOfThreads = Integer.parseInt(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".thread.number"));
+			sleepTime = Integer.parseInt(env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".thread.sleep"));
+		} catch (Exception e) {
+			log.error(ERROR, e.getMessage(), e);
 		}
 
 		// CSV process thread generate start from here
@@ -266,25 +261,17 @@ public class ProcessStarter implements CommandLineRunner {
 	 * @param mfc
 	 */
 	private synchronized void loadFilesIntoMap(ModuleType moduleType, ModuleFilesContainer mfc) {
-		String fileReadPath = null;
-		String filePrefix = null;
-		Map<String, String> filesMap = new HashMap<>();
+		String fileReadPath = env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.readpath");
+		String filePrefix = env.getProperty("dp.module."+ moduleType.getCode().toLowerCase() +".file.prefix");
 
+		Map<String, String> filesMap = new HashMap<>();
 		if(ModuleType.MONTHLY.equals(moduleType)) {
-			fileReadPath = env.getProperty("dp.module.monthly.file.readpath");
-			filePrefix = env.getProperty("dp.module.monthly.file.prefix");
 			filesMap = mfc.getMonthlyFiles();
 		} else if (ModuleType.DAILY.equals(moduleType)) {
-			fileReadPath = env.getProperty("dp.module.daily.file.readpath");
-			filePrefix = env.getProperty("dp.module.daily.file.prefix");
 			filesMap = mfc.getDailyFiles();
 		} else if (ModuleType.EVENT.equals(moduleType)) {
-			fileReadPath = env.getProperty("dp.module.event.file.readpath");
-			filePrefix = env.getProperty("dp.module.event.file.prefix");
 			filesMap = mfc.getEventFiles();
 		} else if (ModuleType.LOAD_PROFILE.equals(moduleType)) {
-			fileReadPath = env.getProperty("dp.module.loadprofile.file.readpath");
-			filePrefix = env.getProperty("dp.module.loadprofile.file.prefix");
 			filesMap = mfc.getLoadProfileFiles();
 		}
 
@@ -294,6 +281,7 @@ public class ProcessStarter implements CommandLineRunner {
 			if(!f.isDirectory() 
 					&& !filesMap.containsKey(f.getName()) 
 					&& f.getName().contains(filePrefix)
+					&& f.getName().startsWith(filePrefix)
 					&& !f.getName().contains("locak")) {
 				filesMap.put(f.getName(), "f");
 			}

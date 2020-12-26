@@ -149,7 +149,7 @@ public class LoadProfileImportExport extends AbstractImportExport {
 							.append(" VALUES ")
 							.append("(")
 							.append("to_number(" + sjid + "),")
-							.append("to_date('" + lpcc.getDateTime() + "','yyyy-mm-dd'),")
+							.append("to_date('" + lpcc.getDateTime() + "','yyyy-mm-dd hh24:mi:ss'),")
 							.append(""+ getNullIfNotExist(lpcc.getAPhaseVoltage()) +",")
 							.append(""+ getNullIfNotExist(lpcc.getBPhaseVoltage()) +",")
 							.append(""+ getNullIfNotExist(lpcc.getCPhaseVoltage()) +",")
