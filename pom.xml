@@ -10,10 +10,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.asl</groupId>
-	<artifactId>monthly-data</artifactId>
+	<artifactId>asl-dp</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>monthly-data</name>
-	<description>DB Data Transporter </description>
+	<name>asl-dp</name>
+	<description>ASL Multithreaded Data Parsing APP</description>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -59,12 +59,12 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.opencsv/opencsv -->
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
 		<dependency>
-			<groupId>com.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-			<version>5.3</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -78,16 +78,6 @@
 			<version>2.4</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi</artifactId>
-			<version>3.11-beta2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
-			<version>3.11-beta2</version>
-		</dependency>
 	</dependencies>
 
 	<build>

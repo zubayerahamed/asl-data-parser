@@ -51,6 +51,14 @@ public class Process extends Thread {
 			file.mkdirs();
 		}
 
+		// Delete previous archive file if have same name 
+		try {
+			Files.deleteIfExists(Paths.get(dest + "/" + fileName));
+			log.debug("Deleted same name previous archived file : {}", dest + "/" + fileName);
+		} catch (IOException e) {
+			log.error("Can't delete same name previous archived : {}", dest + "/" + fileName);
+		}
+
 		// Move file from source to destination
 		Path temp = null;
 		try {

@@ -70,6 +70,8 @@ public class DailyImportExport extends AbstractImportExport {
 										.withIgnoreSurroundingSpaces();
 
 		// Open file write stream
+		boolean errorFound = false;
+		boolean successFound = false;
 		try (CSVPrinter csvSuccessPrinter = new CSVPrinter(new FileWriter(successFile, true), csvWritableFormat);
 			CSVPrinter csvErrorPrinter = new CSVPrinter(new FileWriter(errorFile, true), csvWritableFormat)) {
 
@@ -95,6 +97,7 @@ public class DailyImportExport extends AbstractImportExport {
 
 					// If column has error then write to error file and continue for next record
 					if(StringUtils.isNotBlank(errorReasons)) {
+						errorFound = true;
 						csvErrorPrinter.printRecord(dcc.getErrorRecord(dcc, errorReasons));
 						continue;
 					}
@@ -109,11 +112,13 @@ public class DailyImportExport extends AbstractImportExport {
 						}
 					} catch (Exception e) {
 						log.error(ERROR, e.getMessage(), e);
+						errorFound = true;
 						errorReasons.append(generateErrors(zLine, "A", "SJID read query failed - " + e.getMessage()));
 						csvErrorPrinter.printRecord(dcc.getErrorRecord(dcc, errorReasons));
 						continue;
 					}
 					if(StringUtils.isBlank(sjid)) {
+						errorFound = true;
 						errorReasons.append(generateErrors(zLine, "A", "Sequence number not found using meter number " + dcc.getMeterNo()));
 						csvErrorPrinter.printRecord(dcc.getErrorRecord(dcc, errorReasons));
 						continue;
@@ -132,6 +137,7 @@ public class DailyImportExport extends AbstractImportExport {
 						}
 					} catch (Exception e) {
 						log.error(ERROR, e.getMessage(), e);
+						errorFound = true;
 						errorReasons.append(generateErrors(zLine, "A", "CT, PT read query failed - " + e.getMessage()));
 						csvErrorPrinter.printRecord(dcc.getErrorRecord(dcc, errorReasons));
 						continue;
@@ -160,11 +166,13 @@ public class DailyImportExport extends AbstractImportExport {
 						count = dbService.update(sql3.toString());
 					} catch (Exception e) {
 						log.error(ERROR, e.getMessage(), e);
+						errorFound = true;
 						errorReasons.append(generateErrors(zLine, "", "Data not inserted - " + e.getMessage()));
 						csvErrorPrinter.printRecord(dcc.getErrorRecord(dcc, errorReasons));
 						continue;
 					}
 					if(count < 1) {
+						errorFound = true;
 						errorReasons.append(generateErrors(zLine, "", "Data not inserted"));
 						csvErrorPrinter.printRecord(dcc.getErrorRecord(dcc, errorReasons));
 						continue;
@@ -172,7 +180,7 @@ public class DailyImportExport extends AbstractImportExport {
 
 					// If data inserted successfully, then write this record to success file
 					csvSuccessPrinter.printRecord(dcc.getSuccessRecord(dcc));
-
+					successFound = true;
 				}
 
 			}
@@ -181,6 +189,9 @@ public class DailyImportExport extends AbstractImportExport {
 			log.error(ERROR, e.getMessage());
 			throw new ServiceException(e.getMessage());
 		}
+
+		// If no error or success record found then delete those csv file
+		deleteEmptyErrorORSuccessFile(errorFound, successFound, errorFile, successFile);
 	}
 
 	private String getNullIfNotExist(String val) {

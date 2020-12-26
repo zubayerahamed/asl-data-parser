@@ -34,6 +34,30 @@ public abstract class AbstractImportExport implements ImportExportService {
 
 	@Autowired protected JdbcTemplate jdbcTemplate;
 
+	protected void deleteEmptyErrorORSuccessFile(boolean errorFound, boolean successFound, String errorFile, String successFile) {
+		// If no error record found then delete error csv file
+		if(!errorFound) {
+			log.debug("No error record found...");
+			try {
+				Files.deleteIfExists(Paths.get(errorFile));
+				log.debug("Deleted empty error file : {}", errorFile);
+			} catch (IOException e) {
+				log.error("Can't delete empty error file : {}", errorFile);
+			}
+		}
+
+		// If no success record found then delete success csv file
+		if(!successFound) {
+			log.debug("No success record found...");
+			try {
+				Files.deleteIfExists(Paths.get(successFile));
+				log.debug("Deleted empty success file : {}", successFile);
+			} catch (IOException e) {
+				log.error("Can't delete empty success file : {}", successFile);
+			}
+		}
+	}
+
 	protected String getFileNameWithPath(ImportExportHelper helper) {
 		if(StringUtils.isBlank(helper.getFileName()) || StringUtils.isBlank(helper.getFileReadLocation())) return null;
 		if(helper.getFileReadLocation().endsWith("/")) {

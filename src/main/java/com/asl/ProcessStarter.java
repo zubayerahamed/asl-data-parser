@@ -60,24 +60,16 @@ public class ProcessStarter implements CommandLineRunner {
 		for(String module : activeModules) {
 			if(ModuleType.MONTHLY.getCode().equalsIgnoreCase(module)) {
 				loadFilesIntoMap(ModuleType.MONTHLY, mfc);
-				new Thread(() -> {
-					prepareProcessStart(ModuleType.MONTHLY, mfc);
-				}).start();
+				new Thread(() -> prepareProcessStart(ModuleType.MONTHLY, mfc)).start();
 			} else if (ModuleType.DAILY.getCode().equalsIgnoreCase(module)) {
 				loadFilesIntoMap(ModuleType.DAILY, mfc);
-				new Thread(() -> {
-					prepareProcessStart(ModuleType.DAILY, mfc);
-				}).start();
+				new Thread(() -> prepareProcessStart(ModuleType.DAILY, mfc)).start();
 			} else if (ModuleType.EVENT.getCode().equalsIgnoreCase(module)) {
 				loadFilesIntoMap(ModuleType.EVENT, mfc);
-				new Thread(() -> {
-					prepareProcessStart(ModuleType.EVENT, mfc);
-				}).start();
+				new Thread(() -> prepareProcessStart(ModuleType.EVENT, mfc)).start();
 			} else if (ModuleType.LOAD_PROFILE.getCode().equalsIgnoreCase(module)) {
 				loadFilesIntoMap(ModuleType.LOAD_PROFILE, mfc);
-				new Thread(() -> {
-					prepareProcessStart(ModuleType.LOAD_PROFILE, mfc);
-				}).start();
+				new Thread(() -> prepareProcessStart(ModuleType.LOAD_PROFILE, mfc)).start();
 			}
 		}
 
@@ -111,7 +103,7 @@ public class ProcessStarter implements CommandLineRunner {
 			boolean stat = true;
 			while (stat) {
 				stat = "true".equalsIgnoreCase(getPropertiesValue("thread.process.running.stat"));
-				System.out.println(moduleType.getCode() + " - " + numberOfThreads + " - " + getFilesMapOfModule(moduleType, mfc).size());
+				log.debug("Module : {}, Total Files to process : {}", moduleType.getCode(), getFilesMapOfModule(moduleType, mfc).size());
 
 				// Create thread to parse files
 				if(getThreadVal(moduleType) < numberOfThreads && !getFilesMapOfModule(moduleType, mfc).isEmpty()) {
@@ -122,8 +114,6 @@ public class ProcessStarter implements CommandLineRunner {
 						increaseThreadVal(moduleType);
 						Process process = new Process(getImportExportHelper(moduleType, fileToProcess, getFilesMapOfModule(moduleType, mfc), threadName));
 						process.start();
-
-						System.out.println(fileToProcess + " - " + threadName);
 					}
 
 				}
@@ -137,6 +127,12 @@ public class ProcessStarter implements CommandLineRunner {
 		}
 	}
 
+	/**
+	 * Get Module wise files map
+	 * @param moduleType
+	 * @param mfc
+	 * @return
+	 */
 	private synchronized Map<String, String> getFilesMapOfModule(ModuleType moduleType, ModuleFilesContainer mfc){
 		if(ModuleType.MONTHLY.equals(moduleType)){
 			return mfc.getMonthlyFiles();
