@@ -63,13 +63,11 @@
 		<!-- LOG everything at INFO level -->
 		<root level="info">
 			<appender-ref ref="RollingFile" />
-			<appender-ref ref="Console" />
 		</root>
 
 		<!-- LOG "com.asl*" at TRACE level -->
-		<logger name="com.asl" level="trace" additivity="false">
+		<logger name="com.asl" level="info" additivity="false">
 			<appender-ref ref="RollingFile" />
-			<appender-ref ref="Console" />
 		</logger>
 	</springProfile>
 
